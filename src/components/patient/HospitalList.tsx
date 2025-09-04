@@ -1,39 +1,98 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { getHospitalsInCity } from '@/lib/patient/getHospitalsInCity'
-import { getTodayResourceData } from '@/lib/patient/getTodayResourceData'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/client";
 
+interface Hospital {
+  id: string;
+  name: string;
+  location: string | null;
+  department_id: string;
+}
+
+interface Resource {
+  hospital_id: string;
+  date: string;
+  beds_used: number;
+  total_beds: number;
+  icu_beds_used: number;
+  total_icu_beds: number;
+  oxygen_units_used: number;
+  total_oxygen_units: number;
+}
+async function getHospitalsInCity(city: string): Promise<Hospital[]> {
+  const { data, error } = await supabase
+    .from("hospitals")
+    .select("id, name, location, department_id")
+    .eq("location", city);
+
+  if (error) {
+    console.error("❌ Failed to fetch hospitals:", error.message);
+    return [];
+  }
+  return data ?? []
+}
+async function getTodayResourceData(): Promise<Resource[]> {
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+
+  const { data, error } = await supabase
+    .from("resources")
+    .select(
+      "hospital_id, date, beds_used, total_beds, icu_beds_used, total_icu_beds, oxygen_units_used, total_oxygen_units"
+    )
+    .eq("date", today);
+
+  if (error) {
+    console.error("❌ getTodayResourceData failed:", error.message);
+    return [];
+  }
+
+  return data;
+}
 export default function HospitalList() {
-  const [loading, setLoading] = useState(true)
-  const [hospitals, setHospitals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true);
+  const [hospitals, setHospitals] = useState<
+    (Hospital & {
+      beds: number;
+      beds_total: number;
+      icu_beds: number;
+      icu_beds_total: number;
+      oxygen_units: number;
+      oxygen_total: number;
+    })[]
+  >([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const stored = localStorage.getItem('user_location')
-      if (!stored) return
-
-      const { city } = JSON.parse(stored)
-
-      const hospitalList = await getHospitalsInCity(city)
-      const resourceData = await getTodayResourceData()
+      const stored = localStorage.getItem("user_location");
+      if (!stored) return;
+      const { city } = JSON.parse(stored);
+      const hospitalList = await getHospitalsInCity(city);
+      const resourceData = await getTodayResourceData();
 
       const combined = hospitalList.map((h) => {
-        const match = resourceData.find((r) => r.hospital_id === h.id)
+        const match = resourceData.find(
+          (r) => r.hospital_id === h.department_id
+        );
         return {
           ...h,
-          icu_beds: match?.icu_beds ?? 0,
-          oxygen_units: match?.oxygen_units ?? 0,
-        }
-      })
+          beds: match?.beds_used ?? 0,
+          beds_total: match?.total_beds ?? 0,
+          icu_beds: match?.icu_beds_used ?? 0,
+          icu_beds_total: match?.total_icu_beds ?? 0,
+          oxygen_units: match?.oxygen_units_used ?? 0,
+          oxygen_total: match?.total_oxygen_units ?? 0,
+        };
+      });
 
-      setHospitals(combined)
-      setLoading(false)
-    }
+      setHospitals(combined);
+      setLoading(false);
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   return (
     <div className="bg-white rounded-xl p-6 border shadow">
@@ -52,15 +111,27 @@ export default function HospitalList() {
             >
               <h3 className="text-lg font-semibold mb-2">{h.name}</h3>
               <p className="text-sm text-gray-700">
-                ICU Beds Available: <span className="font-medium">{h.icu_beds}</span>
+                Beds Available:{" "}
+                <span className="font-medium">
+                  {Math.max(h.beds_total - h.beds, 0)}
+                </span>
               </p>
               <p className="text-sm text-gray-700">
-                Oxygen Units Available: <span className="font-medium">{h.oxygen_units}</span>
+                ICU Beds Available:{" "}
+                <span className="font-medium">
+                  {Math.max(h.icu_beds_total - h.icu_beds, 0)}
+                </span>
+              </p>
+              <p className="text-sm text-gray-700">
+                Oxygen Units Available:{" "}
+                <span className="font-medium">
+                  {Math.max(h.oxygen_total - h.oxygen_units, 0)}
+                </span>
               </p>
             </div>
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }

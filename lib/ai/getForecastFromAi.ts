@@ -1,6 +1,12 @@
-export async function getForecastFromAI() {
+export async function getForecastFromAI(resources:string) {
   try {
-    const res = await fetch('/api/forecast')
+    const res = await fetch('/api/forecast', 
+      {method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resources })
+    })
+
+
     const json = await res.json()
 
     if (!res.ok || !json.success) {
@@ -8,11 +14,7 @@ export async function getForecastFromAI() {
       return null
     }
 
-    return json.forecast as {
-      date: string
-      icu_beds: number
-      oxygen_units: number
-    }[]
+     return json;
   } catch (err) {
     console.error('❌ Forecast fetch failed:', err)
     return null

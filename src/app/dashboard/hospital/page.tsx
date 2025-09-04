@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import ResourceTrendChart from "@/src/components/ResourceTrendChart";
 import AIInsightsPanel from "@/src/components/patient/AiResourceAnalyser";
 import PastSubmissionsTable from "@/src/components/PastSubmissionsTable";
+import LogoutButton from "@/src/components/auth/LogoutButton";
 
 export default function HospitalDashboard() {
   const [hospitalName, setHospitalName] = useState("");
@@ -22,7 +23,8 @@ export default function HospitalDashboard() {
   const [doctorsAvailable, setDoctorsAvailable] = useState(0);
   const [totalDoctors, setTotalDoctors] = useState(0);
 
-  const today = new Date().toISOString().split("T")[0];
+  // const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA"); // Gives yyyy-mm-dd in local time
 
   useEffect(() => {
     if (hospitalName) return;
@@ -97,7 +99,7 @@ export default function HospitalDashboard() {
       alert("Submitted successfully");
       setLastSubmission(today);
     }
-        setBedsUsed(0);
+    setBedsUsed(0);
     setTotalBeds(0);
     setIcuUsed(0);
     setTotalIcu(0);
@@ -111,7 +113,11 @@ export default function HospitalDashboard() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Hospital Dashboard</h1>
+
+      <div className='flex justify-between'>
+        <h1 className="text-2xl font-bold">Hospital Dashboard</h1>
+        <LogoutButton />
+      </div>
       <p className="text-lg text-gray-700">Welcome, {hospitalName}</p>
 
       <div className="bg-gray-100 rounded-lg p-4 shadow">

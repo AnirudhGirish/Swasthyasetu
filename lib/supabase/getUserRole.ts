@@ -1,4 +1,3 @@
-// src/lib/supabase/getUserRole.ts
 import { supabase } from './client'
 
 export async function getUserRole(): Promise<'PATIENT' | 'HOSPITAL' | 'HEALTH_DEPT' | null> {

@@ -1,35 +1,35 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-// import { useRouter } from 'next/navigation' 
-import LocationSelector from '../components/LocationSelector'
-import { LoginButton } from '../components/auth/LoginButton'
+import { useEffect, useState } from "react";
+// import { useRouter } from 'next/navigation'
+import LocationSelector from "../components/LocationSelector";
+import { LoginButton } from "../components/auth/LoginButton";
 
 type Location = {
-  country: string
-  state: string
-  city: string
-}
+  country: string;
+  state: string;
+  city: string;
+};
 
 export default function HomePage() {
-  const [locationReady, setLocationReady] = useState(false)
-  const [location, setLocation] = useState<Location | null>(null)
+  const [locationReady, setLocationReady] = useState(false);
+  const [location, setLocation] = useState<Location | null>(null);
 
   // const router = useRouter()
 
   useEffect(() => {
-    const stored = localStorage.getItem('user_location')
+    const stored = localStorage.getItem("user_location");
     if (stored) {
-      const parsed = JSON.parse(stored)
-      setLocation(parsed)
-      setLocationReady(true)
+      const parsed = JSON.parse(stored);
+      setLocation(parsed);
+      setLocationReady(true);
     }
-  }, [])
+  }, []);
 
   const handleLocationSet = (loc: Location) => {
-    setLocation(loc)
-    setLocationReady(true)
-  }
+    setLocation(loc);
+    setLocationReady(true);
+  };
 
   return (
     <main className="min-h-screen grid place-items-center px-6 py-20">
@@ -41,14 +41,25 @@ export default function HomePage() {
           <p className="text-gray-600">Your Health, Our Intelligence</p>
 
           {location && (
-            <p className="text-sm text-gray-500">
-              📍 Location: <strong>{location.city}, {location.state}, {location.country}</strong>
-            </p>
+            <div>
+              <p className="text-sm text-gray-500">
+                📍 Location:{" "}
+                <strong>
+                  {location.city}, {location.state}, {location.country}
+                </strong>
+              </p>
+              <button onClick={()=>{
+                localStorage.removeItem("user_location");
+                window.location.reload();
+              }} className="mt-2 text-blue-600 text-sm underline hover:text-blue-800 hover:cursor-pointer">
+                Update Location
+              </button>
+            </div>
           )}
 
           <LoginButton />
         </div>
       )}
     </main>
-  )
+  );
 }

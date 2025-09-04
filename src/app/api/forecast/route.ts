@@ -1,66 +1,63 @@
-import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
-  // Step 1: Fetch last 30 days of ICU and oxygen data
-  const { data, error } = await supabase
-    .from("resources")
-    .select("date, icu_beds, oxygen_units")
-    .order("date", { ascending: true })
-    .limit(30);
+export async function POST(req: NextRequest) {
+  const { resources } = await req.json();
 
-  if (error || !data) {
-    console.error("❌ Supabase fetch error:", error?.message);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch resource history" },
-      { status: 500 }
-    );
+  const prompt = `You're a government healthcare AI assistant.
+Given the following resource(ICU bed, oxygen unit, and doctor availability across hospitals) usage for a city over 2 weeks:
+
+${JSON.stringify(resources, null, 2)}
+Give:
+1. Any immediate alerts
+2. Forecast ICU/Oxygen demand for next 3 days
+3. Highlight shortages or trends
+
+Respond in JSON like Example:
+{
+  "alerts": [ "Low ICU capacity", ... ],
+  "forecast": {
+    "icu_beds": ["12", "15", "18"],
+    "oxygen_units": ["85", "92", "100"]
   }
-
-  const prompt = `
-        You are an expert health infrastructure forecasting model.
-        Below is the ICU bed and oxygen unit availability over the past few weeks:
-        ${JSON.stringify(data, null, 2)}
-        Based on this, forecast the next 7 days of demand for both ICU beds and oxygen units. Respond in valid JSON array with the format:
-        [
-        {
-            "date": "2025-09-03",
-            "icu_beds": 12,
-            "oxygen_units": 55
-        },
-        ...
-        ]
-        Respond with ONLY the JSON array. No comments, no explanation.
-        `.trim();
+}
+Provide JSON Format:
+{
+  "alerts": ["..."],
+  "forecast": {
+    "icu_beds": [day1, day2, day3],
+    "oxygen_units": [day1, day2, day3]
+  }
+}`;
 
   try {
-    const openaiRes = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4", // or 'gpt-3.5-turbo'
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.3,
-        }),
-      }
-    );
-
-    const json = await openaiRes.json();
-    const content = json.choices?.[0]?.message?.content ?? "";
-
-    const forecast = JSON.parse(content);
-
-    return NextResponse.json({ success: true, forecast });
+    const complete = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini", // or 'gpt-3.5-turbo'
+        messages: [
+          {
+            role: "system",
+            content: "You analyze hospital resource data and forecast demand.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+      }),
+    });
+    const completion = await complete.json();
+    const raw = completion.choices?.[0]?.message?.content ?? "{}";
+    const data = JSON.parse(raw || "{}");
+    return NextResponse.json({ success: true, ...data });
   } catch (err) {
     console.error("❌ Forecast error:", err);
-    return NextResponse.json(
-      { success: false, error: "OpenAI forecast failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "AI forecast error" });
   }
 }

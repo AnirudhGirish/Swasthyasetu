@@ -1,45 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-// import { getCurrentPosition } from '@/lib/geolocation/getLocation'
 import { getDiagnosisFromSymptoms } from '@/lib/ai/getDiagnosisFromSymptoms'
 import EmergencyPanel from '@/src/components/patient/EmergencyPanel'
 import HospitalList from '@/src/components/patient/HospitalList'
+import LogoutButton from '@/src/components/auth/LogoutButton'
 
 export default function PatientDashboard() {
-  const [hospitals, setHospitals] = useState<any[]>([])
   const [symptoms, setSymptoms] = useState('')
   const [diagnosis, setDiagnosis] = useState<{ condition: string, urgency: string } | null>(null)
-  // const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null)
-
-  // // Get geolocation once on load
-  // useEffect(() => {
-  //   getCurrentPosition().then((pos) => {
-  //     if (pos) {
-  //       setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-  //     }
-  //     else {
-  //       setCoords(null)
-  //     }
-  //   })
-  // }, [])
-
-  // Fetch latest public hospital data
-  useEffect(() => {
-    const fetchResources = async () => {
-      const { data, error } = await supabase
-        .from('resources')
-        .select('hospital_id, date, beds_available, icu_beds, oxygen_units')
-        .eq('date', new Date().toISOString().split('T')[0])
-
-      if (!error && data) setHospitals(data)
-    }
-
-    fetchResources()
-  }, [])
 
   const handleSymptomSubmit = async () => {
     if (!symptoms) return alert('Please enter symptoms')
@@ -53,7 +24,11 @@ export default function PatientDashboard() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-xl font-bold mb-4">Patient Dashboard</h1>
+      <div className='flex justify-between'>
+        <h1 className="text-xl font-bold mb-4">Patient Dashboard</h1>
+        <LogoutButton />
+      </div>
+      
       <EmergencyPanel />
       <div className="mb-6 mt-4">
         <label className="block mb-2 font-medium">Describe your symptoms:</label>
@@ -81,26 +56,6 @@ export default function PatientDashboard() {
 
       <h2 className="text-lg font-semibold mt-8 mb-2">Nearby Hospitals</h2>
       <HospitalList />
-      {/* <table className="w-full text-sm border text-black">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-2">Hospital ID</th>
-            <th className="p-2">Beds</th>
-            <th className="p-2">ICU</th>
-            <th className="p-2">Oxygen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {hospitals.map((h) => (
-            <tr key={h.hospital_id}>
-              <td className="p-2">{h.hospital_id}</td>
-              <td className="p-2">{h.beds_available}</td>
-              <td className="p-2">{h.icu_beds}</td>
-              <td className="p-2">{h.oxygen_units}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
     </div>
   )
 }
