@@ -31,6 +31,15 @@
 - Complete submission and hospital data export (CSV).
 
 ---
+## Highlights
+- **Patients** Location-aware dashboard with emergency dialer, AI symptom triage, and real-time bed/ICU/oxygen availability for nearby hospitals.
+- **Hospitals** Supabase Google OAuth onboarding, guided profile setup, validated daily resource submissions, and CSV export of historical reports.
+- **Health departments** Manage hospital access, monitor submission compliance, export resources, and track trends with city-wide analytics.
+- **AI copilots** OpenAI-backed endpoints deliver symptom diagnosis, demand forecasts, anomaly detection, and narrative summaries tailored to hospital data.
+- **Public portal** Read-only landing experience shares emergency contacts and the curated hospital list via the `public_hospitals` view.
+- **Modern web stack** Next.js 15 (App Router + Turbopack), React 19, Tailwind CSS 4, Recharts, and Supabase SSR client keep the experience fast and type-safe.
+
+---
 
 ## 🧱 Tech Stack
 
@@ -38,7 +47,7 @@
 - **Framework**: [Next.js](https://nextjs.org/) with [TypeScript](https://www.typescriptlang.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **Auth**: Google Sign-In via [NextAuth.js](https://next-auth.js.org/)
-- **Charts**: [Chart.js](https://www.chartjs.org/) or similar (for trend visualization)
+- **Charts**: [Chart.js](https://www.chartjs.org/) (for trend visualization)
 
 ### Backend
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL with Row-Level Security)
@@ -47,6 +56,13 @@
   - Symptom interpretation
   - Forecasting trends
   - Alert generation
+
+---
+## Available scripts
+- `npm run dev` – start Next.js with Turbopack.
+- `npm run build` – create a production build.
+- `npm start` – serve the production build.
+- `npm run lint` – run ESLint with the Next.js config.
 
 ---
 
@@ -65,6 +81,17 @@
 - 🚫 **No hospital self-registration** – only health departments can onboard hospitals.
 
 ---
+## Supabase schema
+- **profiles** (`id uuid`, `email text`, `full_name text`, `role text`) – maps Supabase auth users to application roles (`PATIENT`, `HOSPITAL`, `HEALTH_DEPT`).
+- **authorized_hospitals** (`id`, `name`, `email`, `location`, `added_by`) – whitelist of hospital Gmail IDs the health department approves.
+- **hospitals** (`id`, `name`, `location`, `address`, `city`, `state`, `country`, `postal_code`, `speciality_type`, `specialities[]`, `department_id`) – onboarding record created after authorized hospitals complete setup.
+- **resources** (`id`, `hospital_id`, `date`, `beds_*`, `icu_*`, `oxygen_*`, `dialysis_*`, `doctors_*`, `patients_*`, `male_patients`, `female_patients`, `er_visits`, `ot_usage`, `common_symptoms[]`, `weekly_diagnosis_summary`, `doctors_by_speciality jsonb`, `nurses_count`, `staff_to_patient_ratio`) – daily hospital submissions.
+- **public_hospitals** (view) – exposes a minimal `name` + `location` projection for the citizen portal.
+- Enable Row Level Security and write policies so:
+  - patients can read the public view only;
+  - hospitals can insert/update their own `resources` rows;
+  - health department admins can manage hospital registries.
+---
 
 ## 🗂️ Data Model Highlights
 
@@ -82,6 +109,24 @@ Daily resource usage and availability data submitted by hospitals:
 - Dialysis Machines (used & total)
 - Doctors (available & total)
 
+---
+## Project structure
+```text
+src/
+  app/
+    api/                # OpenAI-backed API endpoints
+    auth/               # Supabase OAuth callback flow
+    dashboard/          # Patient, hospital, admin dashboards
+    login/              # Public login screen
+    publics/            # Citizen-facing hospital listing
+    setup/              # Hospital onboarding wizard
+  components/           # Shared UI building blocks
+lib/
+  ai/                   # Client helpers for AI endpoints
+  auth/                 # Role utilities
+  geolocation/          # Location detection + fallback
+  supabase/             # Supabase client + helpers
+```
 ---
 
 ## ✅ Setup & Run Locally
@@ -115,20 +160,6 @@ Daily resource usage and availability data submitted by hospitals:
         npm run dev
     ```
 
-## 📦 Project Structure
-
-/app
-  /dashboard
-    /patient
-    /hospital
-    /admin
-  /setup
-/lib
-  /geolocation
-  /openai
-  /supabase
-/components
-/types
 
 ## 📊 Roadmap
 
@@ -139,6 +170,16 @@ Daily resource usage and availability data submitted by hospitals:
 	•	Mobile-optimized UI
 	•	Email alerts for hospitals not submitting data
 	•	Historical trend comparison across cities
+
+## Development notes
+- The location selector tries browser geolocation first and falls back to manual selection using `country-state-city`; network access to Nominatim reverse geocoding is required for auto-detect.
+- AI endpoints rely on OpenAI rate limits—add caching or retries before production.
+- Hospital submissions enforce simple client-side validation; consider duplicating the checks with database constraints.
+- CSV exports use in-browser blobs (`file-saver`); verify download permissions when embedding inside other shells.
+
+## Disclaimer
+AI-generated guidance is informational only and must not replace professional medical advice. Always consult qualified healthcare providers before acting on the insights.
+
 
 ## 👨‍💻 Author
 

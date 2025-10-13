@@ -448,7 +448,7 @@ export default function HomePage() {
                   A Digital India initiative under the Ministry of Health &
                   Family Welfare, Government of India.
                 </p>
-                <p className="hidden text-sky-200 text-sm leading-relaxed">
+                <p className="text-black text-[10px] mt-1 leading-relaxed">
                   This is a template and prototype. Ideated and built as a project proposal.
                   Not a piblic site from Governmant of India.
                 </p>
