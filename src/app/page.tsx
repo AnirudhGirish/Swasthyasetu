@@ -450,7 +450,7 @@ export default function HomePage() {
                 </p>
                 <p className="text-black text-[10px] mt-1 leading-relaxed">
                   This is a template and prototype. Ideated and built as a project proposal.
-                  Not a piblic site from Governmant of India.
+                  Not a public site from Governmant of India.
                 </p>
               </div>
             </div>
