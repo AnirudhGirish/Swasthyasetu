@@ -13,7 +13,9 @@ Each object contains:
 - doctors, nurses, staff-to-patient ratio
 - male/female/age group breakdowns
 - common_symptoms
-- weekly_diagnosis_summary
+- weekly_diagnosis_summary and more.
+
+And one more important thing you will not be given hospital names dont make up any names just use hospital id in place of hospital name.
 
 JSON data:
 ${JSON.stringify(resources, null, 2)}
@@ -29,9 +31,9 @@ Only return JSON using this format:
 {
   "paragraph": "City-wide summary of anomalies...",
   "anomalies": [
-    "United Hospital on 2025-09-19: Gender total mismatch (22M + 12F != 30 total)",
-    "Metro Care on 2025-09-18: ICU usage exceeded total reported capacity",
-    "Narayana Hospital on 2025-09-17: Missing staff data"
+    "aa234fsd322werfa (Hospital ID) on 2025-09-19: Gender total mismatch (22M + 12F != 30 total)",
+    "aa289dffvsvfgvsa (Hospital ID) on 2025-09-18: ICU usage exceeded total reported capacity",
+    "aa2920nwhr294hna (Hospital ID) on 2025-09-17: Missing staff data"
   ]
 }
 `;
